@@ -1,43 +1,44 @@
 const express = require("express");
 const axios = require("axios");
-const app = express();
+require("dotenv").config();
 
+const app = express();
 app.use(express.json());
 
-// ✅ Root route
-app.get("/", (req, res) => {
-  res.send("🎵 Shazam API is live and working!");
-});
-
-// ✅ Shazam endpoint
+// Shazam API endpoint
 app.post("/api/shazam", async (req, res) => {
   const { term } = req.body;
-  if (!term) return res.status(400).json({ error: "Please provide a song name or keyword!" });
+
+  if (!term) {
+    return res.status(400).json({ error: "Search term is required" });
+  }
+
+  const options = {
+    method: "GET",
+    url: "https://shazam.p.rapidapi.com/search",
+    params: { term: term, locale: "en-US", offset: "0", limit: "5" },
+    headers: {
+      "x-rapidapi-key": process.env.RAPIDAPI_KEY, // 👈 key env se le raha hai
+      "x-rapidapi-host": "shazam.p.rapidapi.com",
+    },
+  };
 
   try {
-    const response = await axios.get("https://shazam.p.rapidapi.com/search", {
-      params: {
-        term: term,
-        locale: "en-US",
-        offset: "0",
-        limit: "5"
-      },
-      headers: {
-        "X-RapidAPI-Key": "050dc8628cmsh54d79e8c4477fe4p195a5djsnd05a63bf7156", // 🧩 apni RapidAPI key
-        "X-RapidAPI-Host": "shazam.p.rapidapi.com"
-      }
-    });
-
+    const response = await axios.request(options);
     res.json({
       success: true,
-      result: response.data
+      data: response.data.tracks?.hits || [],
     });
   } catch (error) {
-    console.error("❌ Shazam error:", error.message);
-    res.json({ error: "Failed to fetch song info. Check API key or plan." });
+    console.error("Shazam error:", error.response?.data || error.message);
+    res.status(500).json({ error: "Failed to fetch song info. Check API key or plan." });
   }
 });
 
-// ✅ Start server
+// Root test
+app.get("/", (req, res) => {
+  res.send("🎵 Shazam API custom server is running!");
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
