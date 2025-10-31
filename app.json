@@ -1,18 +1,13 @@
 {
-  "name": "♥️GOLD MD PAIR QR♥️",
-  "description": "SESSION ID GENERATOR FOR WHATSAPP BOTS",
-  "logo": "https://i.ibb.co/wspzc9t/IMG-20240328-WA0000.jpg",
-  "repository": "https://github.com/Uf-prince/SHAZAM-API",
-  "keywords": ["@Uf-prince"],
-  "success_url": "/", 
-  "buildpacks": [
-    { "url": "https://github.com/heroku/heroku-buildpack-nodejs#latest" }
-  ],
-  "env": {      
-    "MESSAGE": {
-      "description": "Msg Attached With Session ID",
-      "value": "🔰 BY || UMAR 🔰",
-      "required": false 
+  "name": "Shazam API",
+  "description": "Custom Shazam API using RapidAPI key from Heroku Config Vars",
+  "repository": "https://github.com/umarfarooqdev/shazam-api",
+  "keywords": ["node", "express", "api", "music", "shazam"],
+  "env": {
+    "RAPIDAPI_KEY": {
+      "description": "Your RapidAPI key",
+      "required": true
     }
-  }
+  },
+  "buildpacks": [{ "url": "heroku/nodejs" }]
 }
