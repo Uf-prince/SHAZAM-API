@@ -1,13 +1,28 @@
 {
-  "name": "Shazam API",
-  "description": "Custom Shazam API using RapidAPI key from Heroku Config Vars",
-  "repository": "https://github.com/umarfarooqdev/shazam-api",
-  "keywords": ["node", "express", "api", "music", "shazam"],
+  "name": "shazam-api",
+  "description": "Shazam API wrapper for WhatsApp bot",
+  "repository": "https://github.com/username/shazam-api",
+  "keywords": ["shazam","music","api","whatsapp-bot"],
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
   "env": {
-    "RAPIDAPI_KEY": {
-      "description": "Your RapidAPI key",
+    "SHAZAM_KEY": {
+      "description": "Your RapidAPI Shazam Key",
       "required": true
+    },
+    "SHAZAM_HOST": {
+      "description": "Shazam API host",
+      "value": "shazam.p.rapidapi.com"
+    },
+    "PORT": {
+      "description": "Port to run the server",
+      "value": "3000"
     }
   },
-  "buildpacks": [{ "url": "heroku/nodejs" }]
+  "scripts": {
+    "postdeploy": "echo 'Shazam API deployed successfully!'"
+  }
 }
