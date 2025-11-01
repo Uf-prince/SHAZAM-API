@@ -1,5 +1,5 @@
 {
-  "name": "shazam-audiodb-api",
+  "name": "shazam-api",
   "version": "1.0.0",
   "type": "module",
   "main": "index.js",
