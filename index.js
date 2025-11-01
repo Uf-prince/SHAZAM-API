@@ -1,30 +1,33 @@
-// index.js
 import express from "express";
 import axios from "axios";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Test route
 app.get("/", (req, res) => {
-  res.send("✅ AudioDB API is running");
+  res.send("✅ SHAZAM AudioDB API running");
 });
 
-// Song info route
+// Correct route
 app.get("/song", async (req, res) => {
-  const { artist, title } = req.query;
+  const artist = req.query.artist;
+  const title = req.query.title;
 
-  if (!artist || !title) {
-    return res.json({ success: false, error: "Please provide artist and title query parameters" });
-  }
+  if (!artist || !title)
+    return res.json({ success: false, error: "Provide artist and title" });
 
   try {
-    const response = await axios.get(`https://www.theaudiodb.com/api/v1/json/2/searchtrack.php?s=${encodeURIComponent(artist)}&t=${encodeURIComponent(title)}`);
+    const response = await axios.get(
+      `https://www.theaudiodb.com/api/v1/json/2/searchtrack.php?s=${encodeURIComponent(
+        artist
+      )}&t=${encodeURIComponent(title)}`
+    );
     const data = response.data;
 
     if (!data.track) return res.json({ success: false, error: "Song not found" });
 
     const info = data.track[0];
+
     res.json({
       success: true,
       artist: info.strArtist,
