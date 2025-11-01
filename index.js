@@ -1,34 +1,41 @@
-const express = require("express");
-const axios = require("axios");
-const app = express();
+const express = require('express');
+const axios = require('axios');
+const multer = require('multer');
 
+const app = express();
+const upload = multer();
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  res.send("🎵 Shazam API is live!");
-});
-
-app.post("/api/shazam", async (req, res) => {
-  const { term } = req.body;
-  if (!term) return res.status(400).json({ error: "Missing 'term' in body" });
-
-  try {
-    const response = await axios.get("https://shazam.p.rapidapi.com/search", {
-      params: { term, locale: "en-US", offset: "0", limit: "5" },
-      headers: {
-        "x-rapidapi-key": process.env.RAPIDAPI_KEY,
-        "x-rapidapi-host": "shazam.p.rapidapi.com"
-      }
-    });
-
-    res.json(response.data);
-  } catch (error) {
-    console.error("Shazam error:", error.message);
-    res.status(200).json({
-      error: "Failed to fetch song info. Check API key or plan."
-    });
-  }
-});
-
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+const SHAZAM_KEY = process.env.SHAZAM_KEY; // Set this in Heroku env
+const SHAZAM_HOST = process.env.SHAZAM_HOST || 'shazam.p.rapidapi.com';
+
+app.post('/detect', upload.single('audio'), async (req, res) => {
+    if (!req.file) return res.status(400).json({ success: false, message: 'Audio file required' });
+
+    try {
+        const audioBuffer = req.file.buffer;
+        const response = await axios.post(
+            'https://shazam.p.rapidapi.com/songs/v2/detect',
+            audioBuffer,
+            {
+                headers: {
+                    'x-rapidapi-key': SHAZAM_KEY,
+                    'x-rapidapi-host': SHAZAM_HOST,
+                    'content-type': 'text/plain'
+                },
+                timeout: 20000
+            }
+        );
+
+        res.json({ success: true, data: response.data });
+
+    } catch (err) {
+        console.error('Shazam API Error:', err.message);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+app.listen(PORT, () => {
+    console.log(`✅ Shazam API running on port ${PORT}`);
+});
