@@ -1,42 +1,51 @@
 import express from "express";
-import multer from "multer";
 import axios from "axios";
-import FormData from "form-data";
 
 const app = express();
-const upload = multer();
+app.use(express.json());
 
+const PORT = process.env.PORT || 3000;
+
+// 🔹 Default route
 app.get("/", (req, res) => {
-  res.send("✅ Shazam API is running");
+  res.send("✅ AudioDB API server is running");
 });
 
-app.post("/detect", upload.single("audio"), async (req, res) => {
+// 🔹 Song search route
+app.get("/song", async (req, res) => {
   try {
-    if (!req.file) 
-      return res.json({ success: false, error: "No audio file received" });
+    const { artist, title } = req.query;
+    if (!artist || !title) {
+      return res.json({ success: false, error: "Please provide artist and title" });
+    }
 
-    const form = new FormData();
-    form.append("file", req.file.buffer, req.file.originalname || "song.mp3");
+    const url = `https://www.theaudiodb.com/api/v1/json/2/searchtrack.php?s=${encodeURIComponent(
+      artist
+    )}&t=${encodeURIComponent(title)}`;
 
-    const response = await axios.post(
-      "https://shazam-song-recognizer.p.rapidapi.com/recognize",
-      form,
-      {
-        headers: {
-          ...form.getHeaders(),
-          "X-RapidAPI-Key": process.env.RAPIDAPI_KEY,
-          "X-RapidAPI-Host": "shazam-song-recognizer.p.rapidapi.com"
-        },
-        maxBodyLength: Infinity, // handle large files
-      }
-    );
+    const { data } = await axios.get(url);
 
-    res.json({ success: true, data: response.data });
+    if (!data.track || data.track.length === 0) {
+      return res.json({ success: false, error: "Song not found" });
+    }
+
+    const info = data.track[0];
+    res.json({
+      success: true,
+      artist: info.strArtist,
+      song: info.strTrack,
+      album: info.strAlbum,
+      genre: info.strGenre,
+      mood: info.strMood,
+      duration: info.intDuration,
+      description: info.strDescriptionEN,
+      thumbnail: info.strTrackThumb,
+      youtube: info.strMusicVid,
+    });
   } catch (err) {
-    console.error(err.response?.data || err.message);
-    res.json({ success: false, error: err.response?.data || err.message });
+    res.json({ success: false, error: err.message });
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+// 🔹 Start server
+app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
